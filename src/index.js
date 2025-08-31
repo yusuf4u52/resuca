@@ -1,5 +1,6 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
+const { getStockItems } = require('./services/tallyService');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -19,9 +20,15 @@ const createWindow = () => {
   // and load the index.html of the app.
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // Remove menu bar
+  mainWindow.setMenuBarVisibility(false);
 };
+
+// IPC handler for fetching stock items
+ipcMain.handle('fetch-stock-items', async () => {
+  const result = await getStockItems();
+  return result;
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

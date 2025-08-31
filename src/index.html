@@ -2,11 +2,84 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>Hello World!</title>
+    <title>Recusa</title>
     <link rel="stylesheet" href="index.css" />
   </head>
   <body>
-    <h1>💖 Hello World!</h1>
-    <p>Welcome to your Electron application.</p>
+    <div class="container">
+      <h1>Tally Stock Items</h1>
+      <p>Fetch and view stock items with closing balances from Tally.</p>
+      <button id="fetch-btn">Fetch Stock Items</button>
+      <div id="stock-list"></div>
+    </div>
+    <script>
+      const fetchBtn = document.getElementById('fetch-btn');
+      const stockList = document.getElementById('stock-list');
+
+      fetchBtn.addEventListener('click', async () => {
+        stockList.innerHTML = 'Loading...';
+        try {
+          const data = await window.electronAPI.fetchStockItems();
+          if (data.error) {
+            stockList.innerHTML = `Error: ${data.error}`;
+            return;
+          }
+          // Parse and display stock items
+          const names = data.ENVELOPE?.DSPACCNAME || [];
+          const infos = data.ENVELOPE?.DSPSTKINFO || [];
+          if (Array.isArray(names) && Array.isArray(infos) && names.length === infos.length) {
+            stockList.innerHTML = `
+              <table border="1" cellpadding="5" cellspacing="0">
+                <thead>
+                  <tr>
+                    <th>Item Name</th>
+                    <th>Current Stock</th>
+                    <th>Stock Remaining</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${names.map((nameObj, index) => {
+                    const name = nameObj.DSPDISPNAME?.[0] || 'Unknown';
+                    const closing = infos[index]?.DSPSTKCL?.[0];
+                    const quantity = closing?.DSPCLQTY?.[0] || 0;
+                    const outward = infos[index]?.DSPSTKOUT?.[0]?.DSPOUTQTY?.[0] || 0;
+
+                    // Calculate stock remaining days using 365 days
+                    const perDayOutward = parseFloat(outward) / 365;
+                    let stockRemaining = perDayOutward > 0 ? parseFloat(quantity) / perDayOutward : 0;
+                    if (stockRemaining > 0) {
+                      stockRemaining = Math.round(stockRemaining);
+                      if (stockRemaining >= 365) {
+                        const years = Math.round(stockRemaining / 365);
+                        stockRemaining = `${years} year${years > 1 ? 's' : ''}`;
+                      } else if (stockRemaining >= 30) {
+                        const months = Math.round(stockRemaining / 30);
+                        stockRemaining = `${months} month${months > 1 ? 's' : ''}`;
+                      } else {
+                        stockRemaining = `${stockRemaining} day${stockRemaining > 1 ? 's' : ''}`;
+                      }
+                    } else {
+                      stockRemaining = 'N/A';
+                    }
+
+                    return `
+                      <tr>
+                        <td>${name}</td>
+                        <td>${quantity}</td>
+                        <td>${stockRemaining}</td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            `;
+          } else {
+            stockList.innerHTML = '<p>No stock items found.</p>';
+          }
+        } catch (err) {
+          stockList.innerHTML = `Error: ${err.message}`;
+        }
+      });
+    </script>
   </body>
 </html>
