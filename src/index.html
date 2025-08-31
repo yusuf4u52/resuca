@@ -2,15 +2,28 @@
 <html>
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Resuca</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link rel="stylesheet" href="index.css" />
   </head>
-  <body>
-    <div class="container">
-      <h1>Tally Stock Items</h1>
-      <p>Fetch and view stock items with closing balances from Tally.</p>
-      <button id="fetch-btn">Fetch Stock Items</button>
-      <div id="stock-list"></div>
+  <body class="bg-light">
+    <div class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-lg-10">
+          <div class="card shadow">
+            <div class="card-body">
+              <h1 class="card-title text-center mb-4">Tally Stock Items</h1>
+              <p class="text-muted text-center mb-4">Fetch and view stock items with closing balances from Tally.</p>
+              <div class="text-center mb-4">
+                <button id="fetch-btn" class="btn btn-primary btn-lg">Fetch Stock Items</button>
+              </div>
+              <div id="stock-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <script>
       const fetchBtn = document.getElementById('fetch-btn');
@@ -29,49 +42,51 @@
           const infos = data.ENVELOPE?.DSPSTKINFO || [];
           if (Array.isArray(names) && Array.isArray(infos) && names.length === infos.length) {
             stockList.innerHTML = `
-              <table border="1" cellpadding="5" cellspacing="0">
-                <thead>
-                  <tr>
-                    <th>Item Name</th>
-                    <th>Current Stock</th>
-                    <th>Stock Remaining</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${names.map((nameObj, index) => {
-                    const name = nameObj.DSPDISPNAME?.[0] || 'Unknown';
-                    const closing = infos[index]?.DSPSTKCL?.[0];
-                    const quantity = closing?.DSPCLQTY?.[0] || 0;
-                    const outward = infos[index]?.DSPSTKOUT?.[0]?.DSPOUTQTY?.[0] || 0;
+              <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                  <thead class="table-dark">
+                    <tr>
+                      <th scope="col">Item Name</th>
+                      <th scope="col">Current Stock</th>
+                      <th scope="col">Stock Remaining</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${names.map((nameObj, index) => {
+                      const name = nameObj.DSPDISPNAME?.[0] || 'Unknown';
+                      const closing = infos[index]?.DSPSTKCL?.[0];
+                      const quantity = closing?.DSPCLQTY?.[0] || 0;
+                      const outward = infos[index]?.DSPSTKOUT?.[0]?.DSPOUTQTY?.[0] || 0;
 
-                    // Calculate stock remaining days using 365 days
-                    const perDayOutward = parseFloat(outward) / 365;
-                    let stockRemaining = perDayOutward > 0 ? parseFloat(quantity) / perDayOutward : 0;
-                    if (stockRemaining > 0) {
-                      stockRemaining = Math.round(stockRemaining);
-                      if (stockRemaining >= 365) {
-                        const years = Math.round(stockRemaining / 365);
-                        stockRemaining = `${years} year${years > 1 ? 's' : ''}`;
-                      } else if (stockRemaining >= 30) {
-                        const months = Math.round(stockRemaining / 30);
-                        stockRemaining = `${months} month${months > 1 ? 's' : ''}`;
+                      // Calculate stock remaining days using 365 days
+                      const perDayOutward = parseFloat(outward) / 365;
+                      let stockRemaining = perDayOutward > 0 ? parseFloat(quantity) / perDayOutward : 0;
+                      if (stockRemaining > 0) {
+                        stockRemaining = Math.round(stockRemaining);
+                        if (stockRemaining >= 365) {
+                          const years = Math.round(stockRemaining / 365);
+                          stockRemaining = `${years} year${years > 1 ? 's' : ''}`;
+                        } else if (stockRemaining >= 30) {
+                          const months = Math.round(stockRemaining / 30);
+                          stockRemaining = `${months} month${months > 1 ? 's' : ''}`;
+                        } else {
+                          stockRemaining = `${stockRemaining} day${stockRemaining > 1 ? 's' : ''}`;
+                        }
                       } else {
-                        stockRemaining = `${stockRemaining} day${stockRemaining > 1 ? 's' : ''}`;
+                        stockRemaining = 'N/A';
                       }
-                    } else {
-                      stockRemaining = 'N/A';
-                    }
 
-                    return `
-                      <tr>
-                        <td>${name}</td>
-                        <td>${quantity}</td>
-                        <td>${stockRemaining}</td>
-                      </tr>
-                    `;
-                  }).join('')}
-                </tbody>
-              </table>
+                      return `
+                        <tr>
+                          <td>${name}</td>
+                          <td>${quantity}</td>
+                          <td>${stockRemaining}</td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
             `;
           } else {
             stockList.innerHTML = '<p>No stock items found.</p>';
@@ -81,5 +96,7 @@
         }
       });
     </script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
   </body>
 </html>
