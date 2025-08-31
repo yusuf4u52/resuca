@@ -60,7 +60,6 @@ async function getStockItems() {
             headers: { 'Content-Type': 'text/xml' },
         });
         const parsed = await parseStringPromise(res.data);
-        console.log('Parsed Tally response:', JSON.stringify(parsed, null, 2));
         return parsed;
     } catch (err) {
         return { error: err.message };
