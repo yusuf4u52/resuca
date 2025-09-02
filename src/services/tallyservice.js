@@ -4,14 +4,14 @@ const { parseStringPromise } = require('xml2js');
 const TALLY_URL = 'http://localhost:9000/';
 
 async function getStockItems() {
-    // Calculate dates: 365 days ago to today
-    const today = new Date();
-    const fromDate = new Date(today);
-    fromDate.setDate(today.getDate() - 365);
-    const formattedFromDate = fromDate.toISOString().slice(0, 10).replace(/-/g, '');
-    const formattedToDate = today.toISOString().slice(0, 10).replace(/-/g, '');
+  // Calculate dates: 365 days ago to today
+  const today = new Date();
+  const fromDate = new Date(today);
+  fromDate.setDate(today.getDate() - 365);
+  const formattedFromDate = fromDate.toISOString().slice(0, 10).replace(/-/g, '');
+  const formattedToDate = today.toISOString().slice(0, 10).replace(/-/g, '');
 
-    const xmlRequest = `<ENVELOPE>
+  const xmlRequest = `<ENVELOPE>
   <HEADER>
     <TALLYREQUEST>Export Data</TALLYREQUEST>
   </HEADER>
@@ -55,15 +55,17 @@ async function getStockItems() {
   </BODY>
 </ENVELOPE>`;
 
-    try {
-        const res = await axios.post(TALLY_URL, xmlRequest, {
-            headers: { 'Content-Type': 'text/xml' },
-        });
-        const parsed = await parseStringPromise(res.data);
-        return parsed;
-    } catch (err) {
-        return { error: err.message };
-    }
+  try {
+    const res = await axios.post(TALLY_URL, xmlRequest, {
+      headers: { 'Content-Type': 'text/xml' },
+    });
+    // Remove all occurrences of <SSBATCHNAME>...</SSBATCHNAME> and its immediate following <DSPSTKINFO>...</DSPSTKINFO> from the raw XML string
+    let cleanedXml = res.data.replace(new RegExp('<SSBATCHNAME>.*?</SSBATCHNAME>\\s*<DSPSTKINFO>.*?</DSPSTKINFO>', 'gs'), '');
+    const parsed = await parseStringPromise(cleanedXml);
+    return parsed;
+  } catch (err) {
+    return { error: err.message };
+  }
 }
 
 module.exports = { getStockItems };
