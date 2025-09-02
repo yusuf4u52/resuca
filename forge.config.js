@@ -1,5 +1,6 @@
 const { FusesPlugin } = require('@electron-forge/plugin-fuses');
 const { FuseV1Options, FuseVersion } = require('@electron/fuses');
+require('dotenv').config()
 
 module.exports = {
   packagerConfig: {
@@ -32,6 +33,7 @@ module.exports = {
           owner: 'yusuf4u52',
           name: 'resuca'
         },
+        authToken: process.env.GITHUB_TOKEN,
         prerelease: true
       }
     }
