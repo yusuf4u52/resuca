@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
-const { getStockItems } = require('./services/tallyService');
+const { getStockItems } = require('./services/tallyservice.js');
 
 const { updateElectronApp } = require('update-electron-app');
 updateElectronApp();
